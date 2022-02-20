@@ -12,7 +12,6 @@ Parameters:
     Type: AWS::EC2::Subnet::Id
     Description: Choose the list of Subnet per AZ where you the firewall to be deployed.
 
-
 Resources:
   NetworkFirewall:
     Type: "AWS::NetworkFirewall::Firewall"
@@ -39,3 +38,11 @@ Resources:
           - "aws:forward_to_sfe"
         StatelessFragmentDefaultActions:
           - "aws:forward_to_sfe"
+# Defining the Firewall Rule Groups
+
+# SampleStatefulRulegroup:
+#  Type: 'AWS::NetworkFirewall::RuleGroup'
+#  Properties:
+#    RuleGroupName: SampleStatefulRulegroupName
+#    Type: STATEFUL | STATELESS
+#    RuleGroup:
