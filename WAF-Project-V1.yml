@@ -1,5 +1,104 @@
-#Deploying Direct WAF WebACL with free AWS Managed rules.
-
+# Deploying Direct WAF WebACL with free AWS Managed rules.
 AWSTemplateFormatVersion: 2010-09-09
 Description: WAF WebACLs for Direct landing zone
+
+Parameters:
+  WAFWebACLName:
+    Type: String
+    Description: Enter a name for the WAF WebACL to be created.
+  WAFWebACLCWMetricName:
+    Type: String
+    Description: Enter a name for the WAF CloudWatch Metrics to be created.
+  APIGW:
+    Type: String
+    Description: Enter the ARN of the API Gateway to be associated with this WebACL.
+
 Resources:
+# Create WAF WebACL with AWS Managed Rules
+  WebACL:
+    Type: AWS::WAFv2::WebACL
+    Properties:
+      Name: !Ref WAFWebACLName
+      Description: WebACL for API Gateway
+      Scope: REGIONAL
+      DefaultAction:
+        Block: {}
+      VisibilityConfig:
+        CloudWatchMetricsEnabled: True
+        SampledRequestsEnabled: True
+        MetricName: !Ref WAFWebACLCWMetricName
+# Defining the Rule sets for the WebACL
+      Rules:
+        - Name: AWS-ManagedRulesAdminProtection
+          Priority: 0
+          OverrideAction:
+            None: {}
+          VisibilityConfig:
+            SampledRequestsEnabled: True
+            CloudWatchMetricsEnabled: True
+            MetricName: AWSManagedRulesAdminProtectionRuleSetMetric
+          Statement:
+            ManagedRuleGroupStatement:
+              VendorName: AWS
+              Name: AWSManagedRulesAdminProtectionRuleSet
+              ExcludedRules: []
+
+        - Name: AWS-ManagedRulesAnonymousIpList
+          Priority: 1
+          OverrideAction:
+            None: {}
+          VisibilityConfig:
+            SampledRequestsEnabled: True
+            CloudWatchMetricsEnabled: True
+            MetricName: AWS-AWSManagedRulesAnonymousIpList
+          Statement:
+            ManagedRuleGroupStatement:
+              VendorName: AWS
+              Name: AWSManagedRulesAnonymousIpList
+
+        - Name: AWS-ManagedRulesAmazonIpReputationList
+          Priority: 2
+          OverrideAction:
+            None: {}
+          VisibilityConfig:
+            SampledRequestsEnabled: True
+            CloudWatchMetricsEnabled: True
+            MetricName: AWSManagedRulesAmazonIpReputationListSetMetric
+          Statement:
+            ManagedRuleGroupStatement:
+              VendorName: AWS
+              Name: AWSManagedRulesAmazonIpReputationList
+              ExcludedRules: []
+
+        - Name: AWS-ManagedRulesLinuxOS
+          Priority: 3
+          OverrideAction:
+            None: {}
+          VisibilityConfig:
+            SampledRequestsEnabled: True
+            CloudWatchMetricsEnabled: True
+            MetricName: AWSManagedRulesLinuxRuleSetMetric
+          Statement:
+            ManagedRuleGroupStatement:
+              VendorName: AWS
+              Name: AWSManagedRulesLinuxRuleSet
+              ExcludedRules: []
+
+        - Name: AWS-AWSManagedRulesPHPRuleSet
+          Priority: 4
+          OverrideAction:
+            None: {}
+          VisibilityConfig:
+            SampledRequestsEnabled: True
+            CloudWatchMetricsEnabled: True
+            MetricName: AWS-AWSManagedRulesPHPRuleSet
+          Statement:
+            ManagedRuleGroupStatement:
+              VendorName: AWS
+              Name: AWSManagedRulesPHPRuleSet
+# Associating the WebACL to the API Gateway resource
+  WebACLAssociation:
+    Type: AWS::WAFv2::WebACLAssociation
+    Properties:
+      ResourceArn: !Ref APIGW
+      WebACLArn: !GetAtt WebACL.Arn
