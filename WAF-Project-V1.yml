@@ -1,0 +1,5 @@
+#Deploying Direct WAF WebACL with free AWS Managed rules.
+
+AWSTemplateFormatVersion: 2010-09-09
+Description: WAF WebACLs for Direct landing zone
+Resources:
