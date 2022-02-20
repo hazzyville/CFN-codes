@@ -1,0 +1,41 @@
+# Deploying a Network Firewall
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "Network firewall for the landing zone"
+Parameters:
+  NetworkFirewallName:
+    Type: String
+    Description: Enter the name for the Network Firewall.
+  VPC:
+    Type: AWS::EC2::VPC::Id
+    Description: Choose the VPC where you want to create this firewall.
+  Subnet:
+    Type: AWS::EC2::Subnet::Id
+    Description: Choose the list of Subnet per AZ where you the firewall to be deployed.
+
+
+Resources:
+  NetworkFirewall:
+    Type: "AWS::NetworkFirewall::Firewall"
+    Properties:
+      FirewallName: !Ref NetworkFirewallName
+      VpcId: !Ref VPC
+      SubnetMappings:
+        - SubnetId: !Ref Subnet
+      FirewallPolicyArn:
+        Ref: "FirewallPolicy"
+      DeleteProtection: false
+      FirewallPolicyChangeProtection: false
+      SubnetChangeProtection: false
+      Tags:
+        - Key: "Name"
+          Value: "network-firewall"
+# Defining the firewall policy
+  FirewallPolicy:
+    Type: "AWS::NetworkFirewall::FirewallPolicy"
+    Properties:
+      FirewallPolicyName: "firewallpolicy"
+      FirewallPolicy:
+        StatelessDefaultActions:
+          - "aws:forward_to_sfe"
+        StatelessFragmentDefaultActions:
+          - "aws:forward_to_sfe"
